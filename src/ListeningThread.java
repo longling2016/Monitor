@@ -23,6 +23,7 @@ public class ListeningThread implements Runnable {
 
                 String message = dIn.readUTF();
 
+                Monitor.listen(message);
             }
 
         } catch (IOException e) {
