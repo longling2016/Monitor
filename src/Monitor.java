@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
@@ -13,6 +14,8 @@ public class Monitor {
     static int ackCounter = 0;
     static int crashCounter = 0;
     static int status = -1;
+    static Broadcast bc;
+    static ArrayList<Integer> values = new ArrayList<>();
 
 
     public static void main(String[] args) {
@@ -40,7 +43,7 @@ public class Monitor {
 
             addressBook = getAddressBook(message);
 
-            Broadcast bc = new Broadcast(addressBook);
+            bc = new Broadcast(addressBook);
 
             if (!bc.broadcast("moni" + ip + " " + port)){
                 System.out.println("Something wrong with user input for nodes information! Please restart.");
@@ -70,24 +73,7 @@ public class Monitor {
 
             final long startTime = System.currentTimeMillis();
             while (runningCounter < totalWritingTime) {
-                // test if all nodes are online
-                bc.broadcast("ping");
-                while(ackCounter + crashCounter < addressBook.length) {
-                    // do nothing and wait
-                }
-                if (crashCounter > 0) {
-                    // some nodes are crashed. Wait and test again
-                    try {
-                        ackCounter = 0;
-                        crashCounter = 0;
-                        Thread.currentThread().sleep(100);
-                        continue;
-                    } catch (InterruptedException e) {
-                        System.out.println(e);
-                    }
-                }
-                ackCounter = 0;
-                crashCounter = 0;
+                testCrash();
                 int node = rand.nextInt(addressBook.length);
                 int value = rand.nextInt(10000);
                 ms.send("write" + value, addressBook[node].ip, addressBook[node].port);
@@ -98,12 +84,14 @@ public class Monitor {
                     System.out.print(String.format("%-10s", "Fail"));
                     totalFail ++;
                 } else { //success
-                        System.out.print(String.format("%-10s", "Success"));
-                    }
+                    System.out.print(String.format("%-10s", "Success"));
+                }
 
                 runningCounter ++;
 
-                    // make sure everyone is online, do reading
+                // make sure everyone is online, do reading
+                testCrash();
+                bc.broadcast("read");
 
                 // print reading result and record
 
@@ -142,6 +130,29 @@ public class Monitor {
             book[i] = new Address(i, info[0], Integer.parseInt(info[1]));
         }
         return book;
+    }
+
+    private static void testCrash() { // test if all nodes are online
+        while (true) {
+            ackCounter = 0;
+            crashCounter = 0;
+
+            bc.broadcast("ping");
+            while (ackCounter + crashCounter < addressBook.length) {
+                // do nothing and wait
+            }
+            if (crashCounter > 0) {
+                // some nodes are crashed. Wait and test again
+                try {
+                    Thread.currentThread().sleep(100);
+                    continue;
+                } catch (InterruptedException e) {
+                    System.out.println(e);
+                }
+            } else {
+                break;
+            }
+        }
     }
 
     public static void listen(String message) {
