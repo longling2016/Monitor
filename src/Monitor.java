@@ -20,9 +20,10 @@ public class Monitor {
     static Broadcast bc;
     static ArrayList<String> values = new ArrayList<>();
     static ArrayList<Integer> blocks = new ArrayList<>();
+    static int writingQ;
 
     static final int totalWritingTime = 5;  // TODO: can be modified
-    static final int writingQ = 2; // TODO: keep same as node class
+
 
 
     public static void main(String[] args) {
@@ -39,9 +40,14 @@ public class Monitor {
             thread.start();
 
             //  prompt for the user's command
+            System.out.print("Monitor: indicate writing quorum> ");
+            String message = scanner.nextLine();
+
+            writingQ = Integer.parseInt(message);
+
             System.out.print("Monitor: add nodes' ip and port for Monitor> ");
 
-            String message = scanner.nextLine();
+            message = scanner.nextLine();
 
             addressBookMonitor = getAddressBook(message);
 
@@ -51,6 +57,8 @@ public class Monitor {
                 System.out.println("Something wrong with user input for nodes information! Please restart.");
                 System.exit(1);
             }
+
+            bc.broadcast("quorum" + writingQ);
 
             System.out.print("Monitor: add nodes' ip and port for Nodes communication> ");
             message = scanner.nextLine();
@@ -91,6 +99,8 @@ public class Monitor {
         MessageSender ms = new MessageSender();
         int totalFail = 0;
         int consistentReading = 0;
+        int failWriteTotalTime = 0;
+        int successWriteTotalTime = 0;
 
         System.out.println(String.join("", Collections.nCopies(100, "-")));
 
@@ -103,22 +113,24 @@ public class Monitor {
         System.out.print(String.format("%-20s", "If consistent?"));
         System.out.println();
 
-        final long startTime = System.currentTimeMillis();
 
         while (runningCounter < totalWritingTime) {
             testCrash();
-            System.out.println("here");
+//            System.out.println("here");
             int node = rand.nextInt(addressBook.length);
             int value = rand.nextInt(10000);
             ms.send("write" + value, addressBook[node].ip, addressBook[node].port);
-            System.out.println("triggered writing.");
 
-            System.out.println("status = " + status);
+            long startTime = System.currentTimeMillis();
+
+//            System.out.println("triggered writing.");
+
+//            System.out.println("status = " + status);
 
             while (status == -1) {
-                System.out.println("inside status loop.");
+//                System.out.println("inside status loop.");
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                     continue;
                 } catch (InterruptedException e) {
                     System.out.println(e);
@@ -126,7 +138,10 @@ public class Monitor {
                 // do nothing and wait
             }
 
-            System.out.println("received fail/success");
+            long endTime = System.currentTimeMillis();
+
+
+//            System.out.println("received fail/success");
 
             runningCounter++;
 
@@ -136,7 +151,7 @@ public class Monitor {
 
             // print reading result and record
             while (values.size() < addressBook.length) {
-                System.out.println("inside reading value loop.");
+//                System.out.println("inside reading value loop.");
                 // do nothing and wait
                 try {
                     Thread.sleep(100);
@@ -164,8 +179,10 @@ public class Monitor {
             if (status == 0) { // fail
                 System.out.print(String.format("%-20s", "Fail"));
                 totalFail++;
+                failWriteTotalTime += (endTime - startTime);
             } else { //success
                 System.out.print(String.format("%-20s", "Success"));
+                successWriteTotalTime += (endTime - startTime);
             }
             status = -1;
 
@@ -177,25 +194,30 @@ public class Monitor {
             }
         }
 
-        final long endTime = System.currentTimeMillis();
-
-        System.out.println("\n\n\n");
+        System.out.println("\n\n");
         System.out.println(String.join("", Collections.nCopies(100, "-")));
 
-        System.out.println("Total execution time: " + (endTime - startTime) );
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(4);
+
         System.out.println("Total writing operations: " + totalWritingTime);
+        System.out.println("Failed writing due to crash: " + totalFail);
+        System.out.println("Fail rate: " + df.format((double)totalFail / totalWritingTime * 100) + "%");
+
         System.out.println(String.join("", Collections.nCopies(100, "-")));
 
-        DecimalFormat df = new DecimalFormat("#.##");
+        System.out.println("Total execution time: " + (failWriteTotalTime + successWriteTotalTime) );
+        System.out.println("Average execution time of failed writing: " + failWriteTotalTime/totalFail );
+        System.out.println("Average execution time of successful writing: " + successWriteTotalTime/(totalWritingTime - totalFail));
 
-        System.out.println("Failed writing due to crash: " + totalFail);
-        System.out.println("Fail rate: " + df.format((double)totalFail / totalWritingTime) + "\n");
+        System.out.println(String.join("", Collections.nCopies(100, "-")));
 
-        System.out.println("Consistency rate: " + df.format((double)consistentReading / totalWritingTime));
+        System.out.println("Consistency reading: " + consistentReading);
+        System.out.println("Consistency rate: " + df.format((double)consistentReading / totalWritingTime *100) + "%");
         bc.broadcast("block?");
 
         while (blocks.size() < addressBook.length) {
-            System.out.println("inside collecting blocking loop.");
+//            System.out.println("inside collecting blocking loop.");
             try {
                 Thread.sleep(100);
                 continue;
@@ -232,12 +254,12 @@ public class Monitor {
         while (true) {
             ackCounter = 0;
             crashCounter = 0;
-            System.out.println("running...");
+//            System.out.println("running...");
             bc.broadcast("ping");
-            System.out.println("after broadcast...");
+//            System.out.println("after broadcast...");
             while (ackCounter + crashCounter < addressBook.length) {
 
-                System.out.println("inside while loop");
+//                System.out.println("inside while loop");
 
                 // do nothing and wait
                 try {
@@ -247,7 +269,7 @@ public class Monitor {
                     System.out.println(e);
                 }
             }
-            System.out.println("crash counter = "+ crashCounter);
+//            System.out.println("crash counter = "+ crashCounter);
 
             if (crashCounter > 0) {
                 // some nodes are crashed. Wait and test again
@@ -258,12 +280,12 @@ public class Monitor {
                     System.out.println(e);
                 }
             } else {
-                System.out.println("inside else...");
+//                System.out.println("inside else...");
                 break;
             }
         }
 
-        System.out.println("return");
+//        System.out.println("return");
     }
 
     public static void listen(String message) {
@@ -276,11 +298,11 @@ public class Monitor {
             crashCounter ++;
 
         } else if (message.equals("success")) {
-            System.out.println("set to success");
+//            System.out.println("set to success");
             status = 1;
 
         } else if (message.equals("fail")) {
-            System.out.println("set to fail");
+//            System.out.println("set to fail");
             status = 0;
 
         } else if (message.length() > 4 && message.substring(0, 5).equals("value")) {

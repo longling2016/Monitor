@@ -23,7 +23,7 @@ public class ListeningThread implements Runnable {
 
                 String message = dIn.readUTF();
 
-                System.out.println("received message: " + message);
+//                System.out.println("received message: " + message);
 
                 Monitor.listen(message);
             }
