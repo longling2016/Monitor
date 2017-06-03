@@ -9,6 +9,7 @@ public class MessageSender {
 
     public void send (String message, String ip, int port) {
         try {
+            System.out.println("send message: " + message);
             Socket s = new Socket(ip, port);
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
             out.writeUTF(message);

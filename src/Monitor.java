@@ -114,18 +114,24 @@ public class Monitor {
         System.out.println();
 
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        }
+
+
         while (runningCounter < totalWritingTime) {
             testCrash();
-//            System.out.println("here");
             int node = rand.nextInt(addressBook.length);
             int value = rand.nextInt(10000);
             ms.send("write" + value, addressBook[node].ip, addressBook[node].port);
 
             long startTime = System.currentTimeMillis();
 
-//            System.out.println("triggered writing.");
+            System.out.println("triggered writing.");
 
-//            System.out.println("status = " + status);
+            System.out.println("status = " + status);
 
             while (status == -1) {
 //                System.out.println("inside status loop.");
@@ -187,7 +193,7 @@ public class Monitor {
             status = -1;
 
             if (counter == writingQ) {
-                System.out.print(String.format("%-20s", "Yes"));
+                System.out.print(String.format("%-20s", "Yes") + "\n");
                 consistentReading++;
             } else {
                 System.out.print(String.format("%-20s", "No") + "\n");
@@ -207,8 +213,18 @@ public class Monitor {
         System.out.println(String.join("", Collections.nCopies(100, "-")));
 
         System.out.println("Total execution time: " + (failWriteTotalTime + successWriteTotalTime) );
-        System.out.println("Average execution time of failed writing: " + failWriteTotalTime/totalFail );
-        System.out.println("Average execution time of successful writing: " + successWriteTotalTime/(totalWritingTime - totalFail));
+
+        if (totalFail == 0) {
+            System.out.println("No failed writing. All successful!");
+        } else {
+            System.out.println("Average execution time of failed writing: " + failWriteTotalTime / totalFail);
+        }
+
+        if (totalWritingTime - totalFail == 0) {
+            System.out.println("No successful writing. All failed!");
+        } else {
+            System.out.println("Average execution time of successful writing: " + successWriteTotalTime / (totalWritingTime - totalFail));
+        }
 
         System.out.println(String.join("", Collections.nCopies(100, "-")));
 
@@ -254,12 +270,12 @@ public class Monitor {
         while (true) {
             ackCounter = 0;
             crashCounter = 0;
-//            System.out.println("running...");
+            System.out.println("running...");
             bc.broadcast("ping");
-//            System.out.println("after broadcast...");
+            System.out.println("after broadcast...");
             while (ackCounter + crashCounter < addressBook.length) {
 
-//                System.out.println("inside while loop");
+                System.out.println("inside while loop");
 
                 // do nothing and wait
                 try {
