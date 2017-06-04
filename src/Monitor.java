@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by longlingwang on 5/31/17.
@@ -21,8 +24,9 @@ public class Monitor {
     static ArrayList<String> values = new ArrayList<>();
     static ArrayList<Integer> blocks = new ArrayList<>();
     static int writingQ;
+    static final Object trigger = new Object();
 
-    static final int totalWritingTime = 5;  // TODO: can be modified
+    static final int totalWritingTime = 10;  // TODO: can be modified
 
 
 
@@ -129,19 +133,19 @@ public class Monitor {
 
             long startTime = System.currentTimeMillis();
 
-            System.out.println("triggered writing.");
+//            System.out.println("triggered writing.");
 
-            System.out.println("status = " + status);
+//            System.out.println("status = " + status);
 
-            while (status == -1) {
-//                System.out.println("inside status loop.");
+
+            synchronized(trigger) {
                 try {
-                    Thread.sleep(50);
-                    continue;
+                    while (status == -1) {
+                        trigger.wait();
+                    }
                 } catch (InterruptedException e) {
                     System.out.println(e);
                 }
-                // do nothing and wait
             }
 
             long endTime = System.currentTimeMillis();
@@ -156,12 +160,12 @@ public class Monitor {
             bc.broadcast("read");
 
             // print reading result and record
-            while (values.size() < addressBook.length) {
-//                System.out.println("inside reading value loop.");
-                // do nothing and wait
+
+            synchronized(trigger) {
                 try {
-                    Thread.sleep(100);
-                    continue;
+                    while (values.size() < addressBook.length) {
+                        trigger.wait();
+                    }
                 } catch (InterruptedException e) {
                     System.out.println(e);
                 }
@@ -200,7 +204,7 @@ public class Monitor {
             }
         }
 
-        System.out.println("\n\n");
+        System.out.println("\n");
         System.out.println(String.join("", Collections.nCopies(100, "-")));
 
         DecimalFormat df = new DecimalFormat();
@@ -232,15 +236,17 @@ public class Monitor {
         System.out.println("Consistency rate: " + df.format((double)consistentReading / totalWritingTime *100) + "%");
         bc.broadcast("block?");
 
-        while (blocks.size() < addressBook.length) {
-//            System.out.println("inside collecting blocking loop.");
+
+        synchronized(trigger) {
             try {
-                Thread.sleep(100);
-                continue;
+                while (blocks.size() < addressBook.length) {
+                    trigger.wait();
+                }
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
         }
+
         int total = 0;
         for (int each: blocks) {
 //            if (each > max) {
@@ -270,22 +276,22 @@ public class Monitor {
         while (true) {
             ackCounter = 0;
             crashCounter = 0;
-            System.out.println("running...");
+//            System.out.println("running...");
             bc.broadcast("ping");
-            System.out.println("after broadcast...");
-            while (ackCounter + crashCounter < addressBook.length) {
+//            System.out.println("after broadcast...");
 
-                System.out.println("inside while loop");
 
-                // do nothing and wait
+            synchronized(trigger) {
                 try {
-                    Thread.sleep(100);
-                    continue;
+                    while (ackCounter + crashCounter < addressBook.length) {
+//                        System.out.println("inside while loop");
+                        trigger.wait();
+                    }
                 } catch (InterruptedException e) {
                     System.out.println(e);
                 }
             }
-//            System.out.println("crash counter = "+ crashCounter);
+
 
             if (crashCounter > 0) {
                 // some nodes are crashed. Wait and test again
@@ -309,23 +315,58 @@ public class Monitor {
         // receive ack from nodes
         if (message.equals("ack")) {
             ackCounter ++;
+            if(ackCounter + crashCounter == addressBook.length) {
+                synchronized (trigger) {
+//                    System.out.println("notify all ack");
+                    trigger.notifyAll();
+                }
+            }
 
         } else if (message.equals("crash")) {
             crashCounter ++;
+            if(ackCounter + crashCounter == addressBook.length) {
+                synchronized (trigger) {
+//                    System.out.println("notify all crash");
+                    trigger.notifyAll();
+                }
+            }
 
         } else if (message.equals("success")) {
-//            System.out.println("set to success");
-            status = 1;
+//            System.out.println("set to success")
+            synchronized(trigger){
+                status = 1;
+                trigger.notifyAll();
+//                System.out.println("notify all success");
+
+            }
 
         } else if (message.equals("fail")) {
 //            System.out.println("set to fail");
-            status = 0;
+            synchronized(trigger){
+                status = 0;
+                trigger.notifyAll();
+//                System.out.println("notify all fail");
+            }
 
         } else if (message.length() > 4 && message.substring(0, 5).equals("value")) {
             values.add(message.substring(5, message.length()));
+            if (values.size() == addressBook.length) {
+                synchronized (trigger) {
+                    trigger.notifyAll();
+//                    System.out.println("notify all value");
+
+                }
+            }
 
         } else if (message.length() > 4 && message.substring(0, 5).equals("block")) {
             blocks.add(Integer.parseInt(message.substring(5, message.length())));
+            if (blocks.size() == addressBook.length) {
+                synchronized (trigger) {
+                    trigger.notifyAll();
+//                    System.out.println("notify all block");
+
+                }
+            }
 
         } else {
             System.out.println("Received wrong message: " + message);
