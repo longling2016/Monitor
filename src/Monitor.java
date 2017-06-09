@@ -129,7 +129,7 @@ public class Monitor {
             testCrash();
             int node = rand.nextInt(addressBook.length);
             int value = rand.nextInt(10000);
-            ms.send("write" + value, addressBook[node].ip, addressBook[node].port);
+            ms.send("write," + value, addressBook[node].ip, addressBook[node].port);
 
             long startTime = System.currentTimeMillis();
 
