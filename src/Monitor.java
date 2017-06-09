@@ -129,29 +129,24 @@ public class Monitor {
             testCrash();
             int node = rand.nextInt(addressBook.length);
             int value = rand.nextInt(10000);
-            ms.send("write," + value, addressBook[node].ip, addressBook[node].port);
-
             long startTime = System.currentTimeMillis();
-
-//            System.out.println("triggered writing.");
-
-//            System.out.println("status = " + status);
-
-
-            synchronized(trigger) {
-                try {
-                    while (status == -1) {
-                        trigger.wait();
-                    }
-                } catch (InterruptedException e) {
-                    System.out.println(e);
-                }
-            }
-
+           String res = ms.send("write," + value, addressBook[node].ip, addressBook[node].port);
             long endTime = System.currentTimeMillis();
 
+            System.out.println("get response: " + res);
 
-//            System.out.println("received fail/success");
+        if (res.equals("success")) {
+//            System.out.println("set to success")
+            status = 1;
+
+        } else if (res.equals("fail")) {
+//            System.out.println("set to fail");
+            status = 0;
+
+        } else {
+            System.out.println("Error: status = " + status);
+
+        }
 
             runningCounter++;
 
@@ -330,24 +325,6 @@ public class Monitor {
                     trigger.notifyAll();
                 }
             }
-
-        } else if (message.equals("success")) {
-//            System.out.println("set to success")
-            synchronized(trigger){
-                status = 1;
-                trigger.notifyAll();
-//                System.out.println("notify all success");
-
-            }
-
-        } else if (message.equals("fail")) {
-//            System.out.println("set to fail");
-            synchronized(trigger){
-                status = 0;
-                trigger.notifyAll();
-//                System.out.println("notify all fail");
-            }
-
         } else if (message.length() > 4 && message.substring(0, 5).equals("value")) {
             values.add(message.substring(5, message.length()));
             if (values.size() == addressBook.length) {

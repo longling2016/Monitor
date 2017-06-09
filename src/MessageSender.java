@@ -9,7 +9,7 @@ public class MessageSender {
 
     Util u = new Util();
 
-    public void send (String message, String ip, int port) {
+    public String send (String message, String ip, int port) {
 //        try {
 ////            System.out.println("send message: " + message);
 //            Socket s = new Socket(ip, port);
@@ -23,6 +23,6 @@ public class MessageSender {
 //        }
         QuorumNode qn = new QuorumNode(new Address(9999, ip, port));
 
-        u.sAr(qn, message);
+        return u.sAr(qn, message);
     }
 }
