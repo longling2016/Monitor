@@ -71,16 +71,16 @@ public class Monitor {
 
 
             // start testing on no-phase protocol
-            bc.broadcast("noP");
-            System.out.println("\n\nTesting on No-Phase Protocol");
-            writeReadTrigger();
-            bc.broadcast("end");
-
-//            // start testing on two-phase protocol
-//            bc.broadcast("twoP");
-//            System.out.println("\n\nTesting on Two-Phase Protocol");
+//            bc.broadcast("noP");
+//            System.out.println("\n\nTesting on No-Phase Protocol");
 //            writeReadTrigger();
 //            bc.broadcast("end");
+
+//            // start testing on two-phase protocol
+            bc.broadcast("twoP");
+            System.out.println("\n\nTesting on Two-Phase Protocol");
+            writeReadTrigger();
+            bc.broadcast("end");
 
 //
 //            // start testing on three-phase protocol
