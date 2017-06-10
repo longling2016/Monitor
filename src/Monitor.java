@@ -73,20 +73,20 @@ public class Monitor {
             // start testing on no-phase protocol
 //            bc.broadcast("noP");
 //            System.out.println("\n\nTesting on No-Phase Protocol");
-//            writeReadTrigger();
+//            writeReadTrigger(0);
 //            bc.broadcast("end");
 
 //            // start testing on two-phase protocol
             bc.broadcast("twoP");
             System.out.println("\n\nTesting on Two-Phase Protocol");
-            writeReadTrigger();
+            writeReadTrigger(1);
             bc.broadcast("end");
 
 //
 //            // start testing on three-phase protocol
 //            bc.broadcast("threeP");
 //            System.out.println("\n\nTesting on Three-Phase Protocol");
-//            writeReadTrigger();
+//            writeReadTrigger(1);
 //            bc.broadcast("end");
 
 
@@ -96,7 +96,7 @@ public class Monitor {
         }
     }
 
-    private static void writeReadTrigger() {
+    private static void writeReadTrigger(int phase) {
 
         Random rand = new Random();
         int runningCounter = 0;
@@ -129,24 +129,45 @@ public class Monitor {
             testCrash();
             int node = rand.nextInt(addressBook.length);
             int value = rand.nextInt(10000);
-            long startTime = System.currentTimeMillis();
-           String res = ms.send("write," + value, addressBook[node].ip, addressBook[node].port);
-            long endTime = System.currentTimeMillis();
+            long startTime = 0;
+            long endTime = 0;
 
-            System.out.println("get response: " + res);
+            if (phase == 0) {
+                startTime = System.currentTimeMillis();
+                ms.send("write" + value, addressBook[node].ip, addressBook[node].port, 0);
 
-        if (res.equals("success")) {
+                synchronized(trigger) {
+                    try {
+                        while (status == -1) {
+                            trigger.wait();
+                        }
+                    } catch (InterruptedException e) {
+                        System.out.println(e);
+                    }
+                }
+                endTime = System.currentTimeMillis();
+
+            } else {
+
+                startTime = System.currentTimeMillis();
+                String res = ms.send("write," + value, addressBook[node].ip, addressBook[node].port, 1);
+                endTime = System.currentTimeMillis();
+
+                System.out.println("get response: " + res);
+
+                if (res.equals("success")) {
 //            System.out.println("set to success")
-            status = 1;
+                    status = 1;
 
-        } else if (res.equals("fail")) {
+                } else if (res.equals("fail")) {
 //            System.out.println("set to fail");
-            status = 0;
+                    status = 0;
 
-        } else {
-            System.out.println("Error: status = " + status);
+                } else {
+                    System.out.println("Error: status = " + status);
 
-        }
+                }
+            }
 
             runningCounter++;
 
@@ -343,6 +364,18 @@ public class Monitor {
 //                    System.out.println("notify all block");
 
                 }
+            }
+
+        } else if (message.equals("success")) {
+            synchronized(trigger){
+                status = 1;
+                trigger.notifyAll();
+            }
+
+        } else if (message.equals("fail")) {
+            synchronized(trigger){
+                status = 0;
+                trigger.notifyAll();
             }
 
         } else {
