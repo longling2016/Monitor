@@ -26,7 +26,7 @@ public class Monitor {
     static int writingQ;
     static final Object trigger = new Object();
 
-    static final int totalWritingTime = 20;  // TODO: can be modified
+    static final int totalWritingTime = 100;  // TODO: can be modified
 
 
 
