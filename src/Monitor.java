@@ -26,7 +26,7 @@ public class Monitor {
     static int writingQ;
     static final Object trigger = new Object();
 
-    static final int totalWritingTime = 100;  // TODO: can be modified
+    static final int totalWritingTime = 10;  // TODO: can be modified
 
 
 
@@ -49,10 +49,12 @@ public class Monitor {
 
             writingQ = Integer.parseInt(message);
 
-            System.out.print("Monitor: add nodes' ip and port for Monitor> ");
+            StringBuilder sb = new StringBuilder();
+            for (int i = 62000; i <= 62018; i += 2) {
+                sb.append(ip + " " + i + ",");
+            }
 
-            message = scanner.nextLine();
-
+            message = sb.toString();
             addressBookMonitor = getAddressBook(message);
 
             bc = new Broadcast(addressBookMonitor);
@@ -64,8 +66,17 @@ public class Monitor {
 
             bc.broadcast("quorum" + writingQ);
 
-            System.out.print("Monitor: add nodes' ip and port for Nodes communication> ");
-            message = scanner.nextLine();
+//            System.out.print("Monitor: add nodes' ip and port for Nodes communication> ");
+//            message = scanner.nextLine();
+//            message = "172.0.0.1 62001,172.0.0.1 62003,172.0.0.1 62005,172.0.0.1 62007,172.0.0.1 62009,172.0.0.1 62011,172.0.0.1 62013,172.0.0.1 62015,172.0.0.1 62017,172.0.0.1 62019";
+
+            sb = new StringBuilder();
+            for (int i = 62001; i <= 62019; i += 2) {
+                sb.append(ip + " " + i + ",");
+            }
+
+            message = sb.toString();
+
             addressBook = getAddressBook(message);
             bc.broadcast("book" + message);
 
@@ -128,7 +139,7 @@ public class Monitor {
         int failWriteTotalTime = 0;
         int successWriteTotalTime = 0;
 
-        System.out.println(String.join("", Collections.nCopies(150, "-")));
+        System.out.println(String.join("", Collections.nCopies(140, "-")));
 
         int i = 1;
         while (i <= addressBook.length) {
@@ -244,7 +255,7 @@ public class Monitor {
         }
 
         System.out.println("\n");
-        System.out.println(String.join("", Collections.nCopies(150, "-")));
+        System.out.println(String.join("", Collections.nCopies(140, "-")));
 
         DecimalFormat df = new DecimalFormat();
         df.setMaximumFractionDigits(4);
@@ -253,7 +264,7 @@ public class Monitor {
         System.out.println("Failed writing due to crash: " + totalFail);
         System.out.println("Fail rate: " + df.format((double)totalFail / totalWritingTime * 100) + "%");
 
-        System.out.println(String.join("", Collections.nCopies(150, "-")));
+        System.out.println(String.join("", Collections.nCopies(140, "-")));
 
         System.out.println("Total execution time: " + (failWriteTotalTime + successWriteTotalTime) );
 
@@ -269,8 +280,9 @@ public class Monitor {
             System.out.println("Average execution time of successful writing: " + successWriteTotalTime / (totalWritingTime - totalFail));
         }
 
-        System.out.println(String.join("", Collections.nCopies(150, "-")));
+        System.out.println(String.join("", Collections.nCopies(140, "-")));
 
+        System.out.println("Total success writing: " + (totalWritingTime - totalFail));
         System.out.println("Consistency reading: " + consistentReading);
         System.out.println("Consistency rate: " + df.format((double)consistentReading / (totalWritingTime - totalFail) *100) + "%");
         bc.broadcast("block?");
@@ -295,7 +307,7 @@ public class Monitor {
         }
         blocks.clear();
         System.out.println("Blocking times: " + total);
-        System.out.println(String.join("", Collections.nCopies(150, "-")) + "\n\n");
+        System.out.println(String.join("", Collections.nCopies(140, "-")) + "\n\n");
 
 
     }
