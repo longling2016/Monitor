@@ -17,7 +17,7 @@ public class LogSys {
     }
 
     public static void debug(String debugInfo){
-        if(isDebug) {
+        if(false) {
             System.out.println(format.format(new Date())+ whoami+": "+debugInfo+"    ");
         }
     }

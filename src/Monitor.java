@@ -26,7 +26,7 @@ public class Monitor {
     static int writingQ;
     static final Object trigger = new Object();
 
-    static final int totalWritingTime = 10;  // TODO: can be modified
+    static final int totalWritingTime = 20;  // TODO: can be modified
 
 
 
@@ -71,41 +71,40 @@ public class Monitor {
 
 
             // start testing on no-phase protocol
-//            bc.broadcast("noP");
-//            System.out.println("\n\nTesting on No-Phase Protocol");
-//            writeReadTrigger(0);
-//            bc.broadcast("end");
-//
-//            try {
-//                Thread.sleep(2000);
-//            } catch (InterruptedException e) {
-//                System.out.println(e);
-//            }
+            bc.broadcast("noP");
+            System.out.println("\n\nTesting on No-Phase Protocol");
+            writeReadTrigger(0);
+            bc.broadcast("end");
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
 
 
+            // start testing on two-phase protocol
+            bc.broadcast("twoP");
+            System.out.println("\n\nTesting on Two-Phase Protocol");
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+            writeReadTrigger(1);
+            bc.broadcast("end");
 
-//            // start testing on two-phase protocol
-//            bc.broadcast("twoP");
-//            System.out.println("\n\nTesting on Two-Phase Protocol");
-//            try {
-//                Thread.sleep(3000);
-//            } catch (InterruptedException e) {
-//                System.out.println(e);
-//            }
-//            writeReadTrigger(1);
-//            bc.broadcast("end");
-//
-//            try {
-//                Thread.sleep(2000);
-//            } catch (InterruptedException e) {
-//                System.out.println(e);
-//            }
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
 
-//            // start testing on three-phase protocol
+            // start testing on three-phase protocol
             bc.broadcast("threeP");
             System.out.println("\n\nTesting on Three-Phase Protocol");
             try {
-                Thread.sleep(5000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
@@ -129,7 +128,7 @@ public class Monitor {
         int failWriteTotalTime = 0;
         int successWriteTotalTime = 0;
 
-        System.out.println(String.join("", Collections.nCopies(100, "-")));
+        System.out.println(String.join("", Collections.nCopies(150, "-")));
 
         int i = 1;
         while (i <= addressBook.length) {
@@ -172,11 +171,12 @@ public class Monitor {
 
             } else {
 
+
                 startTime = System.currentTimeMillis();
                 String res = ms.send("write," + value, addressBook[node].ip, addressBook[node].port, 1);
                 endTime = System.currentTimeMillis();
 
-                System.out.println("get response: " + res);
+//                System.out.println("get response: " + res);
 
                 if (res.equals("success")) {
 //            System.out.println("set to success")
@@ -244,7 +244,7 @@ public class Monitor {
         }
 
         System.out.println("\n");
-        System.out.println(String.join("", Collections.nCopies(100, "-")));
+        System.out.println(String.join("", Collections.nCopies(150, "-")));
 
         DecimalFormat df = new DecimalFormat();
         df.setMaximumFractionDigits(4);
@@ -253,7 +253,7 @@ public class Monitor {
         System.out.println("Failed writing due to crash: " + totalFail);
         System.out.println("Fail rate: " + df.format((double)totalFail / totalWritingTime * 100) + "%");
 
-        System.out.println(String.join("", Collections.nCopies(100, "-")));
+        System.out.println(String.join("", Collections.nCopies(150, "-")));
 
         System.out.println("Total execution time: " + (failWriteTotalTime + successWriteTotalTime) );
 
@@ -269,7 +269,7 @@ public class Monitor {
             System.out.println("Average execution time of successful writing: " + successWriteTotalTime / (totalWritingTime - totalFail));
         }
 
-        System.out.println(String.join("", Collections.nCopies(100, "-")));
+        System.out.println(String.join("", Collections.nCopies(150, "-")));
 
         System.out.println("Consistency reading: " + consistentReading);
         System.out.println("Consistency rate: " + df.format((double)consistentReading / (totalWritingTime - totalFail) *100) + "%");
@@ -295,7 +295,7 @@ public class Monitor {
         }
         blocks.clear();
         System.out.println("Blocking times: " + total);
-        System.out.println(String.join("", Collections.nCopies(100, "-")) + "\n\n");
+        System.out.println(String.join("", Collections.nCopies(150, "-")) + "\n\n");
 
 
     }

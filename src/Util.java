@@ -23,9 +23,7 @@ public class Util {
             socket.connect(new InetSocketAddress(dst.ip, dst.port), 500);
             input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-            System.out.println("is going to send out " + content);
             out.println(content);
-            System.out.println("sent out " + content);
             res = input.readLine();
 
             out.close();
