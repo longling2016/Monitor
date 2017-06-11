@@ -71,23 +71,40 @@ public class Monitor {
 
 
             // start testing on no-phase protocol
-//            bc.broadcast("noP");
-//            System.out.println("\n\nTesting on No-Phase Protocol");
-//            writeReadTrigger(0);
-//            bc.broadcast("end");
+            bc.broadcast("noP");
+            System.out.println("\n\nTesting on No-Phase Protocol");
+            writeReadTrigger(0);
+            bc.broadcast("end");
+
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+
 
 //            // start testing on two-phase protocol
             bc.broadcast("twoP");
             System.out.println("\n\nTesting on Two-Phase Protocol");
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
             writeReadTrigger(1);
             bc.broadcast("end");
 
-//
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+
 //            // start testing on three-phase protocol
-//            bc.broadcast("threeP");
-//            System.out.println("\n\nTesting on Three-Phase Protocol");
-//            writeReadTrigger(1);
-//            bc.broadcast("end");
+            bc.broadcast("threeP");
+            System.out.println("\n\nTesting on Three-Phase Protocol");
+            writeReadTrigger(1);
+            bc.broadcast("end");
 
 
 
