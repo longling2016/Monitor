@@ -283,7 +283,8 @@ public class Monitor {
         System.out.println(String.join("", Collections.nCopies(140, "-")));
 
         System.out.println("Total success writing: " + (totalWritingTime - totalFail));
-        System.out.println("Consistency reading: " + consistentReading);
+
+        System.out.println("Consistency reading: " + Math.min(consistentReading, (totalWritingTime - totalFail)));
         System.out.println("Consistency rate: " + df.format((double)consistentReading / (totalWritingTime - totalFail) *100) + "%");
         bc.broadcast("block?");
 
@@ -347,7 +348,7 @@ public class Monitor {
             if (crashCounter > 0) {
                 // some nodes are crashed. Wait and test again
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(800);
                     continue;
                 } catch (InterruptedException e) {
                     System.out.println(e);
